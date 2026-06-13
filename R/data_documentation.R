@@ -444,7 +444,7 @@ load_cov_imm <- function(which = c("train", "test"), project = NULL) {
   which <- match.arg(which)
   if (is.null(project)) project <- paste0(which, "_cov")
 
-  file <- system.file("extdata", paste0(which, "_cov.rds"), package = "QUASAR")
+  file <- system.file("extdata", paste0(which, "_cov.rds"), package = "QuasarDeconData")
   if (!nzchar(file) || !file.exists(file))
     stop("Packaged file not found: ", which, "_cov.rds", call. = FALSE)
 
