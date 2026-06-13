@@ -28,6 +28,9 @@ pak::pak("SergejRuff/QuasarDeconData")
 | Object | Platform | Features | Samples / Cells | Ground truth | ID element |
 |----|----|----|----|----|----|
 | `load_pbmc_sc_ref()` | 10x Genomics scRNA (6k/8k/10k) | 22,629 | 21,978 cells | `celltype` | — |
+| `load_cov_imm("train")` | COVID-19 PBMC scRNA | genes in Seurat object | training cells | `cell_type` | `donor_id` |
+| `load_cov_imm("test")` | COVID-19 PBMC scRNA | genes in Seurat object | test cells | `cell_type` | `donor_id` |
+| `load_cov_pbulk()` | COVID-19 PBMC pseudo-bulk | matched expression features | 10 × 1000 samples | 1000 × 6 per file | — |
 | `GSE107011` | RNA-seq | 36,128 | 12 | 12 × 6 | `ensembl_ids` |
 | `GSE107572` | RNA-seq | 19,423 | 9 | 9 × 6 | — |
 | `GSE120502` | RNA-seq | 39,376 | 249 | 249 × 6 | `gene_ids` |
@@ -143,4 +146,81 @@ lapply(
 #> 
 #> $GSE65133
 #> [1] "Monocytes" "Unknown"   "CD4Tcells" "Bcells"    "NK"        "CD8Tcells"
+```
+
+## COVID-19 single-cell train/test reference
+
+QuasarDeconData also includes a donor-balanced COVID-19 PBMC immune
+reference split into training and test sets. The split balances mild and
+severe COVID-19 donors so that neither half is enriched for disease
+severity.
+
+The training split is intended as the single-cell reference for
+deconvolution methods, while the test split was used to generate the
+packaged COVID-19 pseudo-bulk benchmark datasets.
+
+``` r
+train_cov <- load_cov_imm("train")
+test_cov  <- load_cov_imm("test")
+
+train_cov
+test_cov
+
+# cell-type composition
+table(train_cov$cell_type)
+table(test_cov$cell_type)
+
+# donor IDs retained for subject-aware methods such as MuSiC
+table(train_cov$donor_id)
+table(test_cov$donor_id)
+```
+
+Both objects are returned as Seurat objects with cell-type identities
+set from `cell_type`. The `donor_id` metadata column is retained for
+deconvolution methods that require per-subject information.
+
+## COVID-19 pseudo-bulk benchmarks
+
+The COVID-19 pseudo-bulk datasets were generated from `test_cov` and are
+intended for deconvolution benchmarking with `train_cov` as the
+reference. The package contains ten independent pseudo-bulk files, each
+with 1000 simulated bulk samples.
+
+Each pseudo-bulk object contains two elements:
+
+- `bulk_expression_profiles`: pseudo-bulk expression profiles.
+- `ground_truth_proportions`: true cell-type proportions for each
+  pseudo-bulk sample.
+
+``` r
+# load all ten pseudo-bulk datasets
+cov_pbulks <- load_cov_pbulk()
+
+length(cov_pbulks)
+names(cov_pbulks)
+
+# load one specific pseudo-bulk dataset
+cov_pbulk_1 <- load_cov_pbulk(1)
+
+names(cov_pbulk_1)
+
+dim(cov_pbulk_1$bulk_expression_profiles)
+dim(cov_pbulk_1$ground_truth_proportions)
+
+# ground-truth proportions sum to 1 per sample
+head(cov_pbulk_1$ground_truth_proportions)
+rowSums(cov_pbulk_1$ground_truth_proportions)[1:10]
+```
+
+A typical benchmark workflow is therefore:
+
+``` r
+train_cov <- load_cov_imm("train")
+cov_pbulk_1 <- load_cov_pbulk(1)
+
+bulk_expr <- cov_pbulk_1$bulk_expression_profiles
+truth <- cov_pbulk_1$ground_truth_proportions
+
+# res = run_deconvolution(bulk = bulk_expr,ref = train_cov)
+# metrics = calculate_rsme_pearson(estimates= res,ground_ruth = truth)
 ```
