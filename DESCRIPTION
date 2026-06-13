@@ -13,4 +13,6 @@ Depends:
 LazyData: true
 LazyDataCompression: bzip2
 Imports: 
+    Matrix,
+    methods,
     SeuratObject
