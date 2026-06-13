@@ -35,7 +35,7 @@ pak::pak("SergejRuff/QuasarDeconData")
 | `load_pbmc_sc_ref()` | 10x Genomics scRNA (6k/8k/10k) | 22,629 | 21,978 cells | `celltype` | — |
 | `load_cov_imm("train")` | COVID-19 PBMC scRNA | genes in Seurat object | training cells | `cell_type` | `donor_id` |
 | `load_cov_imm("test")` | COVID-19 PBMC scRNA | genes in Seurat object | test cells | `cell_type` | `donor_id` |
-| `load_cov_pbulk()` | COVID-19 PBMC pseudo-bulk | matched expression features | 10 × 1000 samples | 1000 × 6 per file | — |
+| `load_cov_pbulk()` | COVID-19 PBMC pseudo-bulk | matched expression features | 10 × 1000 samples | 1000 × 11 per file | — |
 | `GSE107011` | RNA-seq | 36,128 | 12 | 12 × 6 | `ensembl_ids` |
 | `GSE107572` | RNA-seq | 19,423 | 9 | 9 × 6 | — |
 | `GSE120502` | RNA-seq | 39,376 | 249 | 249 × 6 | `gene_ids` |
