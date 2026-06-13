@@ -457,3 +457,119 @@ load_cov_imm <- function(which = c("train", "test"), project = NULL) {
   Idents(obj) <- obj$cell_type
   obj
 }
+
+
+
+#' Load COVID-19 PBMC pseudo-bulk benchmark datasets
+#'
+#' Loads pseudo-bulk expression profiles generated from the COVID-19 PBMC
+#' immune test split. These pseudo-bulk datasets are intended for deconvolution
+#' benchmarks using the corresponding \code{train_cov} reference.
+#'
+#' Each packaged file contains 1000 pseudo-bulk samples and their matching
+#' ground-truth cell-type proportions.
+#'
+#' @param which Which pseudo-bulk dataset to load. Use \code{"all"} to load all
+#'   ten datasets, or an integer from \code{1} to \code{10} to load a specific
+#'   file. Defaults to \code{"all"}.
+#'
+#' @return If \code{which = "all"}, a named list of length 10. Each element is a
+#'   pseudo-bulk dataset containing:
+#'   \itemize{
+#'     \item \code{bulk_expression_profiles}: pseudo-bulk expression matrix.
+#'     \item \code{ground_truth_proportions}: true cell-type proportions for the
+#'       pseudo-bulk samples.
+#'   }
+#'
+#'   If \code{which} is an integer from \code{1} to \code{10}, only the selected
+#'   pseudo-bulk dataset is returned.
+#'
+#' @details
+#' The files are stored in \code{inst/extdata} as
+#' \code{cov_pbulk_1.rds}, \code{cov_pbulk_2.rds}, ...,
+#' \code{cov_pbulk_10.rds}. They were created from \code{test_cov} and are
+#' designed to be used with \code{train_cov} for deconvolution benchmarking.
+#'
+#' @examples
+#' \dontrun{
+#' pbulks <- load_cov_pbulk()
+#'
+#' pbulk1 <- load_cov_pbulk(1)
+#' expr <- pbulk1$bulk_expression_profiles
+#' prop <- pbulk1$ground_truth_proportions
+#' }
+#'
+#' @export
+load_cov_pbulk <- function(which = "all") {
+  n_files <- 10L
+  valid_ids <- seq_len(n_files)
+
+  if (identical(which, "all")) {
+    ids <- valid_ids
+    return_single <- FALSE
+  } else {
+    if (length(which) != 1L) {
+      stop(
+        "`which` must be either \"all\" or a single integer from 1 to 10.",
+        call. = FALSE
+      )
+    }
+
+    id <- suppressWarnings(as.integer(which))
+
+    if (is.na(id) || !id %in% valid_ids || as.character(id) != as.character(which)) {
+      stop(
+        "`which` must be either \"all\" or a single integer from 1 to 10.",
+        call. = FALSE
+      )
+    }
+
+    ids <- id
+    return_single <- TRUE
+  }
+
+  files <- paste0("cov_pbulk_", ids, ".rds")
+
+  paths <- vapply(
+    files,
+    function(x) {
+      system.file("extdata", x, package = "QuasarDeconData")
+    },
+    character(1)
+  )
+
+  missing_files <- !nzchar(paths) | !file.exists(paths)
+
+  if (any(missing_files)) {
+    stop(
+      "Packaged pseudo-bulk file(s) not found: ",
+      paste(files[missing_files], collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  out <- lapply(paths, readRDS)
+  names(out) <- paste0("cov_pbulk_", ids)
+
+  required_names <- c("bulk_expression_profiles", "ground_truth_proportions")
+
+  valid_structure <- vapply(
+    out,
+    function(x) all(required_names %in% names(x)),
+    logical(1)
+  )
+
+  if (any(!valid_structure)) {
+    stop(
+      "Unexpected pseudo-bulk structure in: ",
+      paste(names(out)[!valid_structure], collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  if (return_single) {
+    out[[1]]
+  } else {
+    out
+  }
+}
