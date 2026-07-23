@@ -465,17 +465,18 @@ load_cov_imm <- function(which = c("train", "test"), project = NULL) {
 #' Loads pseudo-bulk expression profiles generated from the COVID-19 PBMC
 #' immune atlas. The ten test-split datasets are intended for deconvolution
 #' benchmarks using the corresponding \code{train_cov} reference; the
-#' pseudo-bulk dataset generated from the training split can be loaded as well.
+#' pseudo-bulk data generated from the training split can be loaded as well.
 #'
 #' Each packaged test file contains 1000 pseudo-bulk samples and their matching
-#' ground-truth cell-type proportions.
+#' ground-truth cell-type proportions. The training pseudo-bulk data contains
+#' 10000 samples.
 #'
 #' @param which Which pseudo-bulk dataset to load. One of:
 #'   \itemize{
 #'     \item \code{"all"} (the default): all ten test pseudo-bulk datasets.
 #'     \item an integer from \code{1} to \code{10}: a single test dataset.
-#'     \item \code{"train"}: the pseudo-bulk dataset built from the training
-#'       split.
+#'     \item \code{"train"}: the pseudo-bulk data built from the training split,
+#'       reassembled from its packaged chunks into a single dataset.
 #'   }
 #'
 #' @return If \code{which = "all"}, a named list of length 10. Each element is a
@@ -487,16 +488,20 @@ load_cov_imm <- function(which = c("train", "test"), project = NULL) {
 #'   }
 #'
 #'   If \code{which} is an integer from \code{1} to \code{10}, or
-#'   \code{"train"}, only that single pseudo-bulk dataset is returned, with the
-#'   same two elements.
+#'   \code{"train"}, a single pseudo-bulk dataset with those same two elements
+#'   is returned.
 #'
 #' @details
 #' The test files are stored in \code{inst/extdata} as
 #' \code{cov_pbulk_1.rds}, \code{cov_pbulk_2.rds}, ...,
 #' \code{cov_pbulk_10.rds}. They were created from \code{test_cov} and are
 #' designed to be used with \code{train_cov} for deconvolution benchmarking.
-#' The training-split pseudo-bulk data is stored alongside them as
-#' \code{training_pb_cov.rds}.
+#'
+#' The training pseudo-bulk data is split across
+#' \code{training_pb_cov_1.rds} ... \code{training_pb_cov_10.rds} to keep
+#' individual files small. \code{which = "train"} loads all chunks and binds
+#' them back into one dataset, so the split is not visible to the caller.
+#' Sample order is preserved.
 #'
 #' Note that \code{which = "all"} returns only the ten test datasets; the
 #' training pseudo-bulk data must be requested explicitly.
@@ -515,6 +520,7 @@ load_cov_imm <- function(which = c("train", "test"), project = NULL) {
 #' @export
 load_cov_pbulk <- function(which = "all") {
   n_files <- 10L
+  n_train_chunks <- 10L
   valid_ids <- seq_len(n_files)
 
   err_msg <- paste(
@@ -522,14 +528,19 @@ load_cov_pbulk <- function(which = "all") {
     "or a single integer from 1 to 10."
   )
 
+  reassemble <- FALSE
+
   if (identical(which, "all")) {
-    files <- paste0("cov_pbulk_", valid_ids, ".rds")
-    nms <- paste0("cov_pbulk_", valid_ids)
+    ids <- valid_ids
+    files <- paste0("cov_pbulk_", ids, ".rds")
+    nms <- paste0("cov_pbulk_", ids)
     return_single <- FALSE
   } else if (identical(which, "train")) {
-    files <- "training_pb_cov.rds"
-    nms <- "cov_pbulk_train"
-    return_single <- TRUE
+    ids <- seq_len(n_train_chunks)
+    files <- paste0("training_pb_cov_", ids, ".rds")
+    nms <- paste0("cov_pbulk_train_", ids)
+    return_single <- FALSE
+    reassemble <- TRUE
   } else {
     if (length(which) != 1L) {
       stop(err_msg, call. = FALSE)
@@ -582,6 +593,37 @@ load_cov_pbulk <- function(which = "all") {
       paste(names(out)[!valid_structure], collapse = ", "),
       call. = FALSE
     )
+  }
+
+  if (reassemble) {
+    sample_axis <- attr(out[[1]], "sample_axis")
+    if (is.null(sample_axis)) sample_axis <- "cols"
+
+    expr_parts <- lapply(out, `[[`, "bulk_expression_profiles")
+    prop_parts <- lapply(out, `[[`, "ground_truth_proportions")
+
+    expr <- if (identical(sample_axis, "cols")) {
+      do.call(cbind, expr_parts)
+    } else {
+      do.call(rbind, expr_parts)
+    }
+    prop <- do.call(rbind, prop_parts)
+
+    rm(out, expr_parts, prop_parts)
+
+    n_expr <- if (identical(sample_axis, "cols")) ncol(expr) else nrow(expr)
+    if (n_expr != nrow(prop)) {
+      stop(
+        "Reassembled training data is inconsistent: ",
+        n_expr, " expression samples vs ", nrow(prop), " proportion rows.",
+        call. = FALSE
+      )
+    }
+
+    return(list(
+      bulk_expression_profiles = expr,
+      ground_truth_proportions = prop
+    ))
   }
 
   if (return_single) {

@@ -40,15 +40,42 @@ for (i in seq_along(pbulk_list)) {
 train_file <- "/home/sergej/Schreibtisch/program/10_compare_deconvolution_methods/analysis/data_derived/covid_immune_atlas/pseudo_bulk_train/train_bulk.rds"
 
 train_pb <- readRDS(train_file)
-
-# keep the same two slots as the test data (drop if not wanted)
+keep_names <- c("bulk_expression_profiles", "ground_truth_proportions")
 train_pb <- train_pb[keep_names]
 
-format(object.size(train_pb), units = "auto")
+expr <- train_pb$bulk_expression_profiles
+prop <- train_pb$ground_truth_proportions
 
-con <- xzfile(
-  file.path("inst/extdata", "training_pb_cov.rds"),
-  compression = 9
-)
-saveRDS(train_pb, con)
-close(con)
+n_samples <- nrow(prop)
+stopifnot(ncol(expr) == n_samples || nrow(expr) == n_samples)
+samples_in_cols <- ncol(expr) == n_samples
+
+n_chunks <- 10L
+idx_list <- split(seq_len(n_samples), cut(seq_len(n_samples), n_chunks, labels = FALSE))
+
+dir.create("inst/extdata", recursive = TRUE, showWarnings = FALSE)
+
+for (i in seq_along(idx_list)) {
+  idx <- idx_list[[i]]
+
+  chunk <- list(
+    bulk_expression_profiles = if (samples_in_cols) {
+      expr[, idx, drop = FALSE]
+    } else {
+      expr[idx, , drop = FALSE]
+    },
+    ground_truth_proportions = prop[idx, , drop = FALSE]
+  )
+  attr(chunk, "sample_axis") <- if (samples_in_cols) "cols" else "rows"
+
+  con <- xzfile(
+    file.path("inst/extdata", sprintf("training_pb_cov_%d.rds", i)),
+    compression = 9
+  )
+  saveRDS(chunk, con)
+  close(con)
+}
+
+# sanity check — every file must be well under 100 MB
+sizes <- file.size(list.files("inst/extdata", pattern = "^training_pb_cov_", full.names = TRUE))
+round(sizes / 1024^2, 1)

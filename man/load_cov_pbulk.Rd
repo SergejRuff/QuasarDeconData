@@ -11,8 +11,8 @@ load_cov_pbulk(which = "all")
 \itemize{
 \item \code{"all"} (the default): all ten test pseudo-bulk datasets.
 \item an integer from \code{1} to \code{10}: a single test dataset.
-\item \code{"train"}: the pseudo-bulk dataset built from the training
-split.
+\item \code{"train"}: the pseudo-bulk data built from the training split,
+reassembled from its packaged chunks into a single dataset.
 }}
 }
 \value{
@@ -25,25 +25,30 @@ pseudo-bulk samples.
 }
 
 If \code{which} is an integer from \code{1} to \code{10}, or
-\code{"train"}, only that single pseudo-bulk dataset is returned, with the
-same two elements.
+\code{"train"}, a single pseudo-bulk dataset with those same two elements
+is returned.
 }
 \description{
 Loads pseudo-bulk expression profiles generated from the COVID-19 PBMC
 immune atlas. The ten test-split datasets are intended for deconvolution
 benchmarks using the corresponding \code{train_cov} reference; the
-pseudo-bulk dataset generated from the training split can be loaded as well.
+pseudo-bulk data generated from the training split can be loaded as well.
 }
 \details{
 Each packaged test file contains 1000 pseudo-bulk samples and their matching
-ground-truth cell-type proportions.
+ground-truth cell-type proportions. The training pseudo-bulk data contains
+10000 samples.
 
 The test files are stored in \code{inst/extdata} as
 \code{cov_pbulk_1.rds}, \code{cov_pbulk_2.rds}, ...,
 \code{cov_pbulk_10.rds}. They were created from \code{test_cov} and are
 designed to be used with \code{train_cov} for deconvolution benchmarking.
-The training-split pseudo-bulk data is stored alongside them as
-\code{training_pb_cov.rds}.
+
+The training pseudo-bulk data is split across
+\code{training_pb_cov_1.rds} ... \code{training_pb_cov_10.rds} to keep
+individual files small. \code{which = "train"} loads all chunks and binds
+them back into one dataset, so the split is not visible to the caller.
+Sample order is preserved.
 
 Note that \code{which = "all"} returns only the ten test datasets; the
 training pseudo-bulk data must be requested explicitly.
