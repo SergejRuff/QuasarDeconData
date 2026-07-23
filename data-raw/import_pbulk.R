@@ -35,3 +35,20 @@ for (i in seq_along(pbulk_list)) {
   saveRDS(pbulk_list[[i]], con)
   close(con)
 }
+
+
+train_file <- "/home/sergej/Schreibtisch/program/10_compare_deconvolution_methods/analysis/data_derived/covid_immune_atlas/pseudo_bulk_train/train_bulk.rds"
+
+train_pb <- readRDS(train_file)
+
+# keep the same two slots as the test data (drop if not wanted)
+train_pb <- train_pb[keep_names]
+
+format(object.size(train_pb), units = "auto")
+
+con <- xzfile(
+  file.path("inst/extdata", "training_pb_cov.rds"),
+  compression = 9
+)
+saveRDS(train_pb, con)
+close(con)

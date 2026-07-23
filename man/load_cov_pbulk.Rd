@@ -7,9 +7,13 @@
 load_cov_pbulk(which = "all")
 }
 \arguments{
-\item{which}{Which pseudo-bulk dataset to load. Use \code{"all"} to load all
-ten datasets, or an integer from \code{1} to \code{10} to load a specific
-file. Defaults to \code{"all"}.}
+\item{which}{Which pseudo-bulk dataset to load. One of:
+\itemize{
+\item \code{"all"} (the default): all ten test pseudo-bulk datasets.
+\item an integer from \code{1} to \code{10}: a single test dataset.
+\item \code{"train"}: the pseudo-bulk dataset built from the training
+split.
+}}
 }
 \value{
 If \code{which = "all"}, a named list of length 10. Each element is a
@@ -20,22 +24,29 @@ pseudo-bulk dataset containing:
 pseudo-bulk samples.
 }
 
-If \code{which} is an integer from \code{1} to \code{10}, only the selected
-pseudo-bulk dataset is returned.
+If \code{which} is an integer from \code{1} to \code{10}, or
+\code{"train"}, only that single pseudo-bulk dataset is returned, with the
+same two elements.
 }
 \description{
 Loads pseudo-bulk expression profiles generated from the COVID-19 PBMC
-immune test split. These pseudo-bulk datasets are intended for deconvolution
-benchmarks using the corresponding \code{train_cov} reference.
+immune atlas. The ten test-split datasets are intended for deconvolution
+benchmarks using the corresponding \code{train_cov} reference; the
+pseudo-bulk dataset generated from the training split can be loaded as well.
 }
 \details{
-Each packaged file contains 1000 pseudo-bulk samples and their matching
+Each packaged test file contains 1000 pseudo-bulk samples and their matching
 ground-truth cell-type proportions.
 
-The files are stored in \code{inst/extdata} as
+The test files are stored in \code{inst/extdata} as
 \code{cov_pbulk_1.rds}, \code{cov_pbulk_2.rds}, ...,
 \code{cov_pbulk_10.rds}. They were created from \code{test_cov} and are
 designed to be used with \code{train_cov} for deconvolution benchmarking.
+The training-split pseudo-bulk data is stored alongside them as
+\code{training_pb_cov.rds}.
+
+Note that \code{which = "all"} returns only the ten test datasets; the
+training pseudo-bulk data must be requested explicitly.
 }
 \examples{
 \dontrun{
@@ -44,6 +55,8 @@ pbulks <- load_cov_pbulk()
 pbulk1 <- load_cov_pbulk(1)
 expr <- pbulk1$bulk_expression_profiles
 prop <- pbulk1$ground_truth_proportions
+
+train_pbulk <- load_cov_pbulk("train")
 }
 
 }

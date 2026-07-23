@@ -463,15 +463,20 @@ load_cov_imm <- function(which = c("train", "test"), project = NULL) {
 #' Load COVID-19 PBMC pseudo-bulk benchmark datasets
 #'
 #' Loads pseudo-bulk expression profiles generated from the COVID-19 PBMC
-#' immune test split. These pseudo-bulk datasets are intended for deconvolution
-#' benchmarks using the corresponding \code{train_cov} reference.
+#' immune atlas. The ten test-split datasets are intended for deconvolution
+#' benchmarks using the corresponding \code{train_cov} reference; the
+#' pseudo-bulk dataset generated from the training split can be loaded as well.
 #'
-#' Each packaged file contains 1000 pseudo-bulk samples and their matching
+#' Each packaged test file contains 1000 pseudo-bulk samples and their matching
 #' ground-truth cell-type proportions.
 #'
-#' @param which Which pseudo-bulk dataset to load. Use \code{"all"} to load all
-#'   ten datasets, or an integer from \code{1} to \code{10} to load a specific
-#'   file. Defaults to \code{"all"}.
+#' @param which Which pseudo-bulk dataset to load. One of:
+#'   \itemize{
+#'     \item \code{"all"} (the default): all ten test pseudo-bulk datasets.
+#'     \item an integer from \code{1} to \code{10}: a single test dataset.
+#'     \item \code{"train"}: the pseudo-bulk dataset built from the training
+#'       split.
+#'   }
 #'
 #' @return If \code{which = "all"}, a named list of length 10. Each element is a
 #'   pseudo-bulk dataset containing:
@@ -481,14 +486,20 @@ load_cov_imm <- function(which = c("train", "test"), project = NULL) {
 #'       pseudo-bulk samples.
 #'   }
 #'
-#'   If \code{which} is an integer from \code{1} to \code{10}, only the selected
-#'   pseudo-bulk dataset is returned.
+#'   If \code{which} is an integer from \code{1} to \code{10}, or
+#'   \code{"train"}, only that single pseudo-bulk dataset is returned, with the
+#'   same two elements.
 #'
 #' @details
-#' The files are stored in \code{inst/extdata} as
+#' The test files are stored in \code{inst/extdata} as
 #' \code{cov_pbulk_1.rds}, \code{cov_pbulk_2.rds}, ...,
 #' \code{cov_pbulk_10.rds}. They were created from \code{test_cov} and are
 #' designed to be used with \code{train_cov} for deconvolution benchmarking.
+#' The training-split pseudo-bulk data is stored alongside them as
+#' \code{training_pb_cov.rds}.
+#'
+#' Note that \code{which = "all"} returns only the ten test datasets; the
+#' training pseudo-bulk data must be requested explicitly.
 #'
 #' @examples
 #' \dontrun{
@@ -497,6 +508,8 @@ load_cov_imm <- function(which = c("train", "test"), project = NULL) {
 #' pbulk1 <- load_cov_pbulk(1)
 #' expr <- pbulk1$bulk_expression_profiles
 #' prop <- pbulk1$ground_truth_proportions
+#'
+#' train_pbulk <- load_cov_pbulk("train")
 #' }
 #'
 #' @export
@@ -504,31 +517,35 @@ load_cov_pbulk <- function(which = "all") {
   n_files <- 10L
   valid_ids <- seq_len(n_files)
 
+  err_msg <- paste(
+    "`which` must be \"all\", \"train\",",
+    "or a single integer from 1 to 10."
+  )
+
   if (identical(which, "all")) {
-    ids <- valid_ids
+    files <- paste0("cov_pbulk_", valid_ids, ".rds")
+    nms <- paste0("cov_pbulk_", valid_ids)
     return_single <- FALSE
+  } else if (identical(which, "train")) {
+    files <- "training_pb_cov.rds"
+    nms <- "cov_pbulk_train"
+    return_single <- TRUE
   } else {
     if (length(which) != 1L) {
-      stop(
-        "`which` must be either \"all\" or a single integer from 1 to 10.",
-        call. = FALSE
-      )
+      stop(err_msg, call. = FALSE)
     }
 
     id <- suppressWarnings(as.integer(which))
 
-    if (is.na(id) || !id %in% valid_ids || as.character(id) != as.character(which)) {
-      stop(
-        "`which` must be either \"all\" or a single integer from 1 to 10.",
-        call. = FALSE
-      )
+    if (is.na(id) || !id %in% valid_ids ||
+        as.character(id) != as.character(which)) {
+      stop(err_msg, call. = FALSE)
     }
 
-    ids <- id
+    files <- paste0("cov_pbulk_", id, ".rds")
+    nms <- paste0("cov_pbulk_", id)
     return_single <- TRUE
   }
-
-  files <- paste0("cov_pbulk_", ids, ".rds")
 
   paths <- vapply(
     files,
@@ -549,7 +566,7 @@ load_cov_pbulk <- function(which = "all") {
   }
 
   out <- lapply(paths, readRDS)
-  names(out) <- paste0("cov_pbulk_", ids)
+  names(out) <- nms
 
   required_names <- c("bulk_expression_profiles", "ground_truth_proportions")
 
