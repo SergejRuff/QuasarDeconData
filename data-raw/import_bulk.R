@@ -14,6 +14,26 @@ GSE120502 <- readRDS(list.files(bulk_path,full.names = TRUE)[[3]])
 
 GSE65133 <- readRDS(list.files(bulk_path,full.names = TRUE)[[4]])
 
+library(illuminaHumanv4.db)
+symbols <- mapIds(illuminaHumanv4.db,
+                  keys = rownames(GSE65133$bulk_expression_profiles),
+                  column = "SYMBOL", keytype = "PROBEID",
+                  multiVals = "first")
+
+X <- GSE65133$bulk_expression_profiles
+
+keep <- !is.na(symbols)
+X <- X[keep, , drop = FALSE]
+sym <- symbols[keep]
+
+v <- apply(X, 1, var)
+best <- tapply(seq_along(sym), sym, function(i) i[which.max(v[i])])
+
+X <- X[unlist(best), , drop = FALSE]
+rownames(X) <- names(best)
+
+
+GSE65133$bulk_expression_profiles <- X
 
 usethis::use_data(
   GSE107011,
