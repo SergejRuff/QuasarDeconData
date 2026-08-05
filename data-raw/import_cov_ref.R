@@ -49,9 +49,41 @@ test_cov <- prep(paste0(base_folder, "test_cov_imm.RDS"), "test_cov")
 pack(test_cov, "inst/extdata/test_cov.rds")
 rm(test_cov); gc()
 
+# healthy_cov <- prep(paste0(base_folder, "train_healthy_ref.RDS"), "healthy_cov")
+# print(table(healthy_cov$cell_type))
+# pack(healthy_cov, "inst/extdata/healthy_cov.rds")
+# rm(healthy_cov); gc()
+
+pack_chunked <- function(obj, prefix, n_chunks = 3L, out_dir = "inst/extdata") {
+  m <- as(LayerData(obj, assay = "RNA", layer = "counts"), "dgCMatrix")
+  meta <- obj@meta.data
+
+  idx_list <- split(seq_len(ncol(m)), cut(seq_len(ncol(m)), n_chunks, labels = FALSE))
+
+  for (k in seq_along(idx_list)) {
+    idx <- idx_list[[k]]
+    sub <- m[, idx, drop = FALSE]
+
+    payload <- list(
+      i = sub@i, p = sub@p,
+      x = writeBin(sub@x, raw(), size = 4L),
+      n = length(sub@x),
+      Dim = sub@Dim, dn = sub@Dimnames,
+      meta = meta[idx, , drop = FALSE],
+      chunk = k, n_chunks = n_chunks
+    )
+
+    f <- file.path(out_dir, sprintf("%s_%d.rds", prefix, k))
+    con <- xzfile(f, compression = 9); saveRDS(payload, con); close(con)
+    cat(sprintf("%s: %d genes x %d cells, %.1f MB\n",
+                basename(f), sub@Dim[1], sub@Dim[2],
+                file.info(f)$size / 1024^2))
+    rm(sub, payload); gc()
+  }
+}
+
 healthy_cov <- prep(paste0(base_folder, "train_healthy_ref.RDS"), "healthy_cov")
-print(table(healthy_cov$cell_type))
-pack(healthy_cov, "inst/extdata/healthy_cov.rds")
+pack_chunked(healthy_cov, "healthy_cov", n_chunks = 3L)
 rm(healthy_cov); gc()
 
 for (f in c("train_cov.rds", "test_cov.rds", "healthy_cov.rds")) {

@@ -453,16 +453,48 @@ load_cov_imm <- function(which = c("train", "test", "healthy"), project = NULL) 
   which <- match.arg(which)
   if (is.null(project)) project <- paste0(which, "_cov")
 
-  file <- system.file("extdata", paste0(which, "_cov.rds"),
-                      package = "QuasarDeconData")
-  if (!nzchar(file) || !file.exists(file))
-    stop("Packaged file not found: ", which, "_cov.rds", call. = FALSE)
+  chunked <- c(healthy = 3L)
 
-  d <- readRDS(file)
-  x <- readBin(d$x, "double", n = d$n, size = 4L)
-  m <- new("dgCMatrix", i = d$i, p = d$p, x = x, Dim = d$Dim, Dimnames = d$dn)
+  read_payload <- function(file) {
+    d <- readRDS(file)
+    x <- readBin(d$x, "double", n = d$n, size = 4L)
+    list(
+      m = new("dgCMatrix", i = d$i, p = d$p, x = x,
+              Dim = d$Dim, Dimnames = d$dn),
+      meta = d$meta
+    )
+  }
 
-  obj <- CreateSeuratObject(counts = m, meta.data = d$meta,
+  resolve <- function(fname) {
+    f <- system.file("extdata", fname, package = "QuasarDeconData")
+    if (!nzchar(f) || !file.exists(f))
+      stop("Packaged file not found: ", fname, call. = FALSE)
+    f
+  }
+
+  if (which %in% names(chunked)) {
+    n_chunks <- chunked[[which]]
+    files <- sprintf("%s_cov_%d.rds", which, seq_len(n_chunks))
+    parts <- lapply(files, function(fn) read_payload(resolve(fn)))
+
+    genes <- rownames(parts[[1]]$m)
+    if (!all(vapply(parts, function(p) identical(rownames(p$m), genes), logical(1))))
+      stop("Packaged chunks do not share the same gene set.", call. = FALSE)
+
+    m <- do.call(cbind, lapply(parts, `[[`, "m"))
+    meta <- do.call(rbind, lapply(parts, `[[`, "meta"))
+    rm(parts)
+
+    if (!identical(colnames(m), rownames(meta)))
+      stop("Reassembled counts and metadata are out of sync.", call. = FALSE)
+  } else {
+    p <- read_payload(resolve(paste0(which, "_cov.rds")))
+    m <- p$m
+    meta <- p$meta
+    rm(p)
+  }
+
+  obj <- CreateSeuratObject(counts = m, meta.data = meta,
                             assay = "RNA", project = project)
   Idents(obj) <- obj$cell_type
   obj
