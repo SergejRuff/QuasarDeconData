@@ -406,13 +406,16 @@ load_pbmc_sc_ref <- function() {
 "GSE65133"
 
 
-#' Load the COVID-19 PBMC immune reference (train or test split)
+#' Load the COVID-19 PBMC immune reference (train, test, or healthy split)
 #'
-#' Loads one half of a donor-balanced 50/50 split of a COVID-19 peripheral-blood
-#' immune dataset, shipped in \code{inst/extdata}. The two halves balance mild and
-#' severe COVID-19 donors so neither split is enriched for disease severity.
+#' Loads one part of a donor-balanced 50/50 split of a COVID-19 peripheral-blood
+#' immune dataset, shipped in \code{inst/extdata}. The train and test halves
+#' balance mild and severe COVID-19 donors so neither split is enriched for
+#' disease severity. A third reference built only from healthy (non-diseased)
+#' donors is provided for reference-mismatch experiments.
 #'
-#' @param which Which split to load: \code{"train"} (default) or \code{"test"}.
+#' @param which Which reference to load: \code{"train"} (default),
+#'   \code{"test"}, or \code{"healthy"}.
 #' @param project Project name for the resulting object. Defaults to
 #'   \code{paste0(which, "_cov")}.
 #'
@@ -427,24 +430,31 @@ load_pbmc_sc_ref <- function() {
 #' the source; no genes or cells are dropped. \code{donor_id} is retained for
 #' deconvolution methods that require per-subject information, e.g. MuSiC.
 #'
+#' The healthy reference contains cells from donors annotated as non-diseased
+#' only. It is intended for experiments in which a reference that does not match
+#' the disease composition of the mixtures is used for deconvolution, and it may
+#' therefore lack cell types present in the benchmark ground truth.
+#'
 #' Source: CELLxGENE collection
 #' \url{https://cellxgene.cziscience.com/collections/b9fc3d70-5a72-4479-a046-c2cc1ab19efc}.
 #'
 #' @examples
 #' \dontrun{
-#' train <- load_cov_imm()          # training split (default)
-#' test  <- load_cov_imm("test")    # test split
+#' train   <- load_cov_imm()             # training split (default)
+#' test    <- load_cov_imm("test")       # test split
+#' healthy <- load_cov_imm("healthy")    # healthy-donor reference
 #' }
 #'
 #' @importFrom methods new
 #' @importClassesFrom Matrix dgCMatrix
 #' @importFrom SeuratObject CreateSeuratObject Idents `Idents<-`
 #' @export
-load_cov_imm <- function(which = c("train", "test"), project = NULL) {
+load_cov_imm <- function(which = c("train", "test", "healthy"), project = NULL) {
   which <- match.arg(which)
   if (is.null(project)) project <- paste0(which, "_cov")
 
-  file <- system.file("extdata", paste0(which, "_cov.rds"), package = "QuasarDeconData")
+  file <- system.file("extdata", paste0(which, "_cov.rds"),
+                      package = "QuasarDeconData")
   if (!nzchar(file) || !file.exists(file))
     stop("Packaged file not found: ", which, "_cov.rds", call. = FALSE)
 
@@ -465,7 +475,8 @@ load_cov_imm <- function(which = c("train", "test"), project = NULL) {
 #' Loads pseudo-bulk expression profiles generated from the COVID-19 PBMC
 #' immune atlas. The ten test-split datasets are intended for deconvolution
 #' benchmarks using the corresponding \code{train_cov} reference; the
-#' pseudo-bulk data generated from the training split can be loaded as well.
+#' pseudo-bulk data generated from the training split, and from the
+#' healthy-only reference split, can be loaded as well.
 #'
 #' Each packaged test file contains 1000 pseudo-bulk samples and their matching
 #' ground-truth cell-type proportions. The training pseudo-bulk data contains
@@ -477,6 +488,9 @@ load_cov_imm <- function(which = c("train", "test"), project = NULL) {
 #'     \item an integer from \code{1} to \code{10}: a single test dataset.
 #'     \item \code{"train"}: the pseudo-bulk data built from the training split,
 #'       reassembled from its packaged chunks into a single dataset.
+#'     \item \code{"healthy"}: the pseudo-bulk data built from the healthy-only
+#'       training split, reassembled from its packaged chunks into a single
+#'       dataset.
 #'   }
 #'
 #' @return If \code{which = "all"}, a named list of length 10. Each element is a
@@ -487,9 +501,9 @@ load_cov_imm <- function(which = c("train", "test"), project = NULL) {
 #'       pseudo-bulk samples.
 #'   }
 #'
-#'   If \code{which} is an integer from \code{1} to \code{10}, or
-#'   \code{"train"}, a single pseudo-bulk dataset with those same two elements
-#'   is returned.
+#'   If \code{which} is an integer from \code{1} to \code{10},
+#'   \code{"train"}, or \code{"healthy"}, a single pseudo-bulk dataset with
+#'   those same two elements is returned.
 #'
 #' @details
 #' The test files are stored in \code{inst/extdata} as
@@ -498,13 +512,19 @@ load_cov_imm <- function(which = c("train", "test"), project = NULL) {
 #' designed to be used with \code{train_cov} for deconvolution benchmarking.
 #'
 #' The training pseudo-bulk data is split across
-#' \code{training_pb_cov_1.rds} ... \code{training_pb_cov_10.rds} to keep
-#' individual files small. \code{which = "train"} loads all chunks and binds
-#' them back into one dataset, so the split is not visible to the caller.
-#' Sample order is preserved.
+#' \code{training_pb_cov_1.rds} ... \code{training_pb_cov_10.rds}, and the
+#' healthy-only pseudo-bulk data across
+#' \code{healthy_pb_cov_1.rds} ... \code{healthy_pb_cov_10.rds}, to keep
+#' individual files small. \code{which = "train"} and \code{which = "healthy"}
+#' load all chunks and bind them back into one dataset, so the split is not
+#' visible to the caller. Sample order is preserved.
+#'
+#' The healthy-only pseudo-bulk data is intended for reference-mismatch
+#' experiments, in which a reference built from healthy donors only is used to
+#' deconvolve mixtures containing diseased samples.
 #'
 #' Note that \code{which = "all"} returns only the ten test datasets; the
-#' training pseudo-bulk data must be requested explicitly.
+#' training and healthy pseudo-bulk data must be requested explicitly.
 #'
 #' @examples
 #' \dontrun{
@@ -515,16 +535,18 @@ load_cov_imm <- function(which = c("train", "test"), project = NULL) {
 #' prop <- pbulk1$ground_truth_proportions
 #'
 #' train_pbulk <- load_cov_pbulk("train")
+#' healthy_pbulk <- load_cov_pbulk("healthy")
 #' }
 #'
 #' @export
 load_cov_pbulk <- function(which = "all") {
   n_files <- 10L
   n_train_chunks <- 10L
+  n_healthy_chunks <- 10L
   valid_ids <- seq_len(n_files)
 
   err_msg <- paste(
-    "`which` must be \"all\", \"train\",",
+    "`which` must be \"all\", \"train\", \"healthy\",",
     "or a single integer from 1 to 10."
   )
 
@@ -539,6 +561,12 @@ load_cov_pbulk <- function(which = "all") {
     ids <- seq_len(n_train_chunks)
     files <- paste0("training_pb_cov_", ids, ".rds")
     nms <- paste0("cov_pbulk_train_", ids)
+    return_single <- FALSE
+    reassemble <- TRUE
+  } else if (identical(which, "healthy")) {
+    ids <- seq_len(n_healthy_chunks)
+    files <- paste0("healthy_pb_cov_", ids, ".rds")
+    nms <- paste0("cov_pbulk_healthy_", ids)
     return_single <- FALSE
     reassemble <- TRUE
   } else {
@@ -614,7 +642,7 @@ load_cov_pbulk <- function(which = "all") {
     n_expr <- if (identical(sample_axis, "cols")) ncol(expr) else nrow(expr)
     if (n_expr != nrow(prop)) {
       stop(
-        "Reassembled training data is inconsistent: ",
+        "Reassembled data is inconsistent: ",
         n_expr, " expression samples vs ", nrow(prop), " proportion rows.",
         call. = FALSE
       )

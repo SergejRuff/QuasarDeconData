@@ -2,12 +2,13 @@
 % Please edit documentation in R/data_documentation.R
 \name{load_cov_imm}
 \alias{load_cov_imm}
-\title{Load the COVID-19 PBMC immune reference (train or test split)}
+\title{Load the COVID-19 PBMC immune reference (train, test, or healthy split)}
 \usage{
-load_cov_imm(which = c("train", "test"), project = NULL)
+load_cov_imm(which = c("train", "test", "healthy"), project = NULL)
 }
 \arguments{
-\item{which}{Which split to load: \code{"train"} (default) or \code{"test"}.}
+\item{which}{Which reference to load: \code{"train"} (default),
+\code{"test"}, or \code{"healthy"}.}
 
 \item{project}{Project name for the resulting object. Defaults to
 \code{paste0(which, "_cov")}.}
@@ -18,9 +19,11 @@ layer, cell-type identities set, and \code{meta.data} columns
 \code{cell_type} and \code{donor_id}.
 }
 \description{
-Loads one half of a donor-balanced 50/50 split of a COVID-19 peripheral-blood
-immune dataset, shipped in \code{inst/extdata}. The two halves balance mild and
-severe COVID-19 donors so neither split is enriched for disease severity.
+Loads one part of a donor-balanced 50/50 split of a COVID-19 peripheral-blood
+immune dataset, shipped in \code{inst/extdata}. The train and test halves
+balance mild and severe COVID-19 donors so neither split is enriched for
+disease severity. A third reference built only from healthy (non-diseased)
+donors is provided for reference-mismatch experiments.
 }
 \details{
 To keep the packaged \code{.rds} files under 100 MB, the sparse count matrix is
@@ -29,13 +32,19 @@ read back into double precision, accurate to ~7 significant digits relative to
 the source; no genes or cells are dropped. \code{donor_id} is retained for
 deconvolution methods that require per-subject information, e.g. MuSiC.
 
+The healthy reference contains cells from donors annotated as non-diseased
+only. It is intended for experiments in which a reference that does not match
+the disease composition of the mixtures is used for deconvolution, and it may
+therefore lack cell types present in the benchmark ground truth.
+
 Source: CELLxGENE collection
 \url{https://cellxgene.cziscience.com/collections/b9fc3d70-5a72-4479-a046-c2cc1ab19efc}.
 }
 \examples{
 \dontrun{
-train <- load_cov_imm()          # training split (default)
-test  <- load_cov_imm("test")    # test split
+train   <- load_cov_imm()             # training split (default)
+test    <- load_cov_imm("test")       # test split
+healthy <- load_cov_imm("healthy")    # healthy-donor reference
 }
 
 }

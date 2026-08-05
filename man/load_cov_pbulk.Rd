@@ -13,6 +13,9 @@ load_cov_pbulk(which = "all")
 \item an integer from \code{1} to \code{10}: a single test dataset.
 \item \code{"train"}: the pseudo-bulk data built from the training split,
 reassembled from its packaged chunks into a single dataset.
+\item \code{"healthy"}: the pseudo-bulk data built from the healthy-only
+training split, reassembled from its packaged chunks into a single
+dataset.
 }}
 }
 \value{
@@ -24,15 +27,16 @@ pseudo-bulk dataset containing:
 pseudo-bulk samples.
 }
 
-If \code{which} is an integer from \code{1} to \code{10}, or
-\code{"train"}, a single pseudo-bulk dataset with those same two elements
-is returned.
+If \code{which} is an integer from \code{1} to \code{10},
+\code{"train"}, or \code{"healthy"}, a single pseudo-bulk dataset with
+those same two elements is returned.
 }
 \description{
 Loads pseudo-bulk expression profiles generated from the COVID-19 PBMC
 immune atlas. The ten test-split datasets are intended for deconvolution
 benchmarks using the corresponding \code{train_cov} reference; the
-pseudo-bulk data generated from the training split can be loaded as well.
+pseudo-bulk data generated from the training split, and from the
+healthy-only reference split, can be loaded as well.
 }
 \details{
 Each packaged test file contains 1000 pseudo-bulk samples and their matching
@@ -45,13 +49,19 @@ The test files are stored in \code{inst/extdata} as
 designed to be used with \code{train_cov} for deconvolution benchmarking.
 
 The training pseudo-bulk data is split across
-\code{training_pb_cov_1.rds} ... \code{training_pb_cov_10.rds} to keep
-individual files small. \code{which = "train"} loads all chunks and binds
-them back into one dataset, so the split is not visible to the caller.
-Sample order is preserved.
+\code{training_pb_cov_1.rds} ... \code{training_pb_cov_10.rds}, and the
+healthy-only pseudo-bulk data across
+\code{healthy_pb_cov_1.rds} ... \code{healthy_pb_cov_10.rds}, to keep
+individual files small. \code{which = "train"} and \code{which = "healthy"}
+load all chunks and bind them back into one dataset, so the split is not
+visible to the caller. Sample order is preserved.
+
+The healthy-only pseudo-bulk data is intended for reference-mismatch
+experiments, in which a reference built from healthy donors only is used to
+deconvolve mixtures containing diseased samples.
 
 Note that \code{which = "all"} returns only the ten test datasets; the
-training pseudo-bulk data must be requested explicitly.
+training and healthy pseudo-bulk data must be requested explicitly.
 }
 \examples{
 \dontrun{
@@ -62,6 +72,7 @@ expr <- pbulk1$bulk_expression_profiles
 prop <- pbulk1$ground_truth_proportions
 
 train_pbulk <- load_cov_pbulk("train")
+healthy_pbulk <- load_cov_pbulk("healthy")
 }
 
 }
