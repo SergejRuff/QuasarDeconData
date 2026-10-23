@@ -38,7 +38,7 @@ pak::pak("SergejRuff/QuasarDeconData")
 | `load_cov_pbulk()` | COVID-19 PBMC pseudo-bulk | matched expression features | 10 × 1000 samples | 1000 × 11 per file | — |
 | `load_cov_pbulk("train")` | COVID-19 PBMC pseudo-bulk | matched expression features | 10,000 samples | 10,000 × 11 | — |
 | `load_cov_pbulk("healthy")` | COVID-19 PBMC pseudo-bulk (healthy donors only) | matched expression features | healthy samples | matched proportions | — |
-| `GSE107011` | RNA-seq | 36,128 | 12 | 12 × 6 | `ensembl_ids` |
+| `GSE107011` (Monaco1) | RNA-seq | 36,128 | 12 | 12 × 6 | `ensembl_ids` |
 | `GSE107990` (Monaco2) | Microarray (Illumina HT-12 V4) | 20,908 | 164 | 164 × 6; additional 164 × 11 | — |
 | `GSE107572` | RNA-seq | 19,423 | 9 | 9 × 6 | — |
 | `GSE120502` | RNA-seq | 39,376 | 249 | 249 × 6 | `gene_ids` |
