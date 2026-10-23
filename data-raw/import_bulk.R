@@ -18,6 +18,10 @@ GSE65133 <- readRDS(list.files(bulk_path,full.names = TRUE)[[5]])
 
 SDY67 <- readRDS(list.files(bulk_path,full.names = TRUE)[[6]])
 
+
+GSE193141$bulk_expression_profiles = as.matrix(GSE193141$bulk_expression_profiles)
+SDY67$bulk_expression_profiles = as.matrix(SDY67$bulk_expression_profiles)
+
 library(illuminaHumanv4.db)
 symbols <- mapIds(illuminaHumanv4.db,
                   keys = rownames(GSE65133$bulk_expression_profiles),
