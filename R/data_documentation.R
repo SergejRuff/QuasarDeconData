@@ -750,6 +750,293 @@ load_pbmc_sc_ref <- function(which = c("ref", "pseudobulk")) {
 "GSE193141"
 
 
+#' SDY67 PBMC deconvolution benchmark using the Scaden flow-cytometry data
+#'
+#' A processed peripheral blood mononuclear cell (PBMC) bulk RNA-seq
+#' deconvolution dataset derived from ImmPort study SDY67, using the
+#' flow-cytometry reference proportions used in the Scaden study by
+#' Menden et al. (2020).
+#'
+#' The object contains bulk expression profiles and corresponding
+#' ground-truth cell type proportions, formatted for use in QUASAR
+#' deconvolution workflows.
+#'
+#' The underlying SDY67 study investigated immune responses to influenza
+#' vaccination. Menden et al. (2020) used a subset of this study as the
+#' PBMC1 benchmark, citing Zimmermann et al. (2016) as the original source.
+#'
+#' @format A named list containing:
+#' \describe{
+#'   \item{bulk_expression_profiles}{
+#'     A numeric matrix or data frame containing bulk expression profiles,
+#'     with features in rows and samples in columns.
+#'   }
+#'   \item{ground_truth_proportions}{
+#'     A numeric matrix or data frame containing reference cell type
+#'     proportions, with samples in rows and cell types in columns.
+#'     The harmonized columns are \code{CD8Tcells}, \code{Monocytes},
+#'     \code{CD4Tcells}, \code{Bcells}, \code{NK}, and \code{Unknown}.
+#'   }
+#' }
+#'
+#' @details
+#' The suffix \code{_scaden} identifies the version using the
+#' flow-cytometry reference data employed in the Scaden benchmark.
+#' These reference proportions provide the experimental comparison for
+#' evaluating expression-based cell composition estimates.
+#'
+#' Menden et al. (2020) describe a 12-sample PBMC1 benchmark. The dimensions
+#' of the packaged object can be inspected using the examples below.
+#'
+#' The harmonized cell type labels have the following meanings:
+#' \describe{
+#'   \item{CD8Tcells}{CD8 T cells.}
+#'   \item{Monocytes}{Monocytes.}
+#'   \item{CD4Tcells}{CD4 T cells.}
+#'   \item{Bcells}{B cells.}
+#'   \item{NK}{Natural killer cells.}
+#'   \item{Unknown}{
+#'     An additional or unassigned category in the processed representation.
+#'     Its interpretation depends on the preprocessing used to construct
+#'     this object; it should not automatically be interpreted as a
+#'     separately measured flow-cytometry population.
+#'   }
+#' }
+#'
+#' Sample identifiers in the expression matrix columns should correspond
+#' to those in the proportion matrix rows. Column order should be checked
+#' when comparing proportions with deconvolution predictions.
+#'
+#' The data were processed and reformatted by Sergej Ruff for use with
+#' QUASAR deconvolution workflows. No endorsement by the original data
+#' providers or the Scaden authors is implied.
+#'
+#' @source
+#' Original study: ImmPort accession SDY67:
+#' \url{https://www.immport.org/shared/study/SDY67}
+#'
+#' Scaden publication and associated resources:
+#' \doi{10.1126/sciadv.aba2619}
+#'
+#' Related Scaden Figshare resource, titled "PBMC training data":
+#' \url{https://figshare.com/s/e59a03885ec4c4d8153f} Last access: 23.10.2026, 18:52.
+#'
+#' The linked Figshare record describes simulated bulk training data
+#' generated from four 10x Genomics single-cell PBMC datasets. It does
+#' not identify itself as the SDY67 flow-cytometry reference dataset.
+#'
+#' @references
+#' Menden, K., Marouf, M., Oller, S., Dalmia, A., Magruder, D. S.,
+#' Kloiber, K., Heutink, P., and Bonn, S. (2020).
+#' Deep learning-based cell composition analysis from tissue expression
+#' profiles. \emph{Science Advances}, 6(30), eaba2619.
+#' \doi{10.1126/sciadv.aba2619}
+#'
+#' Zimmermann, M. T., Oberg, A. L., Grill, D. E., Ovsyannikova, I. G.,
+#' Haralambieva, I. H., Kennedy, R. B., and Poland, G. A. (2016).
+#' System-Wide Associations between DNA-Methylation, Gene Expression,
+#' and Humoral Immune Response to Influenza Vaccination.
+#' \emph{PLOS ONE}, 11(3), e0152034.
+#' \doi{10.1371/journal.pone.0152034}
+#'
+#' @seealso \code{\link{SDY67}}
+#'
+#' @usage data(SDY67_scaden)
+#'
+#' @keywords datasets
+#'
+#' @examples
+#' data(SDY67_scaden)
+#'
+#' names(SDY67_scaden)
+#' dim(SDY67_scaden$bulk_expression_profiles)
+#' dim(SDY67_scaden$ground_truth_proportions)
+#' colnames(SDY67_scaden$ground_truth_proportions)
+#'
+#' # Check sample alignment
+#' identical(
+#'   colnames(SDY67_scaden$bulk_expression_profiles),
+#'   rownames(SDY67_scaden$ground_truth_proportions)
+#' )
+#'
+#' # Inspect reference proportions and their row totals
+#' head(SDY67_scaden$ground_truth_proportions)
+#' head(rowSums(SDY67_scaden$ground_truth_proportions))
+"SDY67_scaden"
+
+
+
+
+#' Processed GSE107990 (Monaco II) PBMC microarray deconvolution dataset
+#'
+#' A processed peripheral blood mononuclear cell (PBMC) deconvolution
+#' benchmark dataset derived from GEO accession GSE107990, also known
+#' as Monaco II in deconvolution benchmarks.
+#'
+#' GSE107990 contains expression measurements from the Illumina
+#' HumanHT-12 v4 microarray platform. Unlike GSE107011, commonly called
+#' Monaco I, this dataset contains microarray intensities
+#' rather than bulk RNA-seq measurements.
+#'
+#' The object contains matched expression profiles, harmonized ground-truth
+#' proportions for five major immune cell types and an unknown fraction,
+#' and a second proportion matrix retaining all 11 population columns
+#' available for this cohort.
+#'
+#' The harmonized ground-truth table was obtained from the benchmark
+#' resources accompanying Khatri, Machart, and Bonn (2024), the DISSECT
+#' study. The 11-population table was obtained from the supplementary
+#' material of Monaco et al. (2019).
+#'
+#' @format A named list with three elements:
+#' \describe{
+#'   \item{bulk_expression_profiles}{
+#'     A numeric matrix with 20,908 genes and 164 bulk PBMC samples.
+#'     Rows are identified by gene symbols and columns by sample
+#'     identifiers, such as \code{X2_D0}.
+#'     Values are gene-level summaries of non-normalized microarray
+#'     signal intensities.
+#'   }
+#'   \item{ground_truth_proportions}{
+#'     A numeric matrix with 164 samples and 6 columns:
+#'     \code{Bcells}, \code{CD4Tcells}, \code{CD8Tcells},
+#'     \code{Monocytes}, \code{NK}, and \code{Unknown}.
+#'     Values are fractions on a 0--1 scale and sum to one per sample,
+#'     within numerical precision.
+#'   }
+#'   \item{ground_truth_all_ct}{
+#'     A numeric matrix with 164 samples and 11 population columns:
+#'     \code{B Memory}, \code{B Naive}, \code{Plasmablasts},
+#'     \code{T CD4}, \code{T CD8}, \code{Monocytes}, \code{DCs},
+#'     \code{NK}, \code{mDCs}, \code{pDCs}, and \code{T cells}.
+#'     Source percentages were divided by 100 to obtain fractions.
+#'     These populations overlap, so row sums are not constrained to one.
+#'   }
+#' }
+#'
+#' @details
+#' The packaged dataset contains 164 baseline samples with matching
+#' expression profiles and complete values in both proportion matrices.
+#' Expression column names are identical, and in the same order, to
+#' the row names of both proportion matrices.
+#'
+#'
+#' Illumina probe identifiers were mapped to Entrez Gene identifiers
+#' using illuminaHumanv4.db version 1.26.0 and then to gene symbols
+#' using org.Hs.eg.db version 3.23.1. Probes without an unambiguous
+#' gene symbol, or with missing expression in any retained sample, were
+#' excluded. Multiple retained probes mapping to the same gene were
+#' combined by taking their arithmetic mean for each sample.
+#' Gene symbols are stored as expression row names.
+#'
+#' Expression values retain their original non-normalized intensity scale.
+#' No logarithmic transformation, between-sample normalization, or batch
+#' correction was applied during preparation of this object.
+#' These values should not be interpreted as sequencing counts.
+#'
+#' The six-column ground-truth matrix preserves the supplied DISSECT
+#' benchmark proportions. Its correspondence to the detailed population
+#' matrix was verified for every sample:
+#' \describe{
+#'   \item{Bcells}{
+#'     The sum of \code{B Memory}, \code{B Naive}, and
+#'     \code{Plasmablasts}.
+#'   }
+#'   \item{CD4Tcells}{
+#'     The \code{T CD4} population.
+#'   }
+#'   \item{CD8Tcells}{
+#'     The \code{T CD8} population.
+#'   }
+#'   \item{Monocytes}{
+#'     The \code{Monocytes} population.
+#'   }
+#'   \item{NK}{
+#'     The \code{NK} population.
+#'   }
+#'   \item{Unknown}{
+#'     One minus the sum of the five major cell-type fractions.
+#'     This is an arithmetic remainder, not a separately measured
+#'     flow-cytometry population.
+#'   }
+#' }
+#'
+#' The detailed proportions were extracted from Supplementary Table S6
+#' of Monaco et al. (2019), distributed as \code{mmc7.xlsx}, using its
+#' second worksheet, \code{GSE107990 (Our vaccine cohort)}.
+#' All 11 population columns were retained with their original names.
+#'
+#'
+#' The data were processed and reformatted by Sergej Ruff for use with
+#' QUASAR deconvolution workflows. No endorsement by the original data
+#' providers is implied.
+#'
+#' @source
+#' Bulk expression data: Gene Expression Omnibus accession GSE107990:
+#' \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE107990}
+#'
+#' Microarray platform: Illumina HumanHT-12 v4, GEO accession GPL10558:
+#' \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GPL10558}
+#'
+#' Harmonized six-column ground truth: benchmark resources accompanying
+#' Khatri, Machart, and Bonn (2024), DISSECT:
+#' \doi{10.1186/s13059-024-03251-5}
+#'
+#' Detailed 11-population ground truth: Monaco et al. (2019),
+#' Supplementary Table S6, second worksheet:
+#' \doi{10.1016/j.celrep.2019.01.041}
+#'
+#' @references
+#' Monaco, G., Lee, B., Xu, W., Mustafah, S., Hwang, Y. Y.,
+#' Carre, C., et al. (2019).
+#' RNA-Seq signatures normalized by mRNA abundance allow absolute
+#' deconvolution of human immune cell types.
+#' \emph{Cell Reports}, 26(6), 1627--1640.e7.
+#' \doi{10.1016/j.celrep.2019.01.041}
+#'
+#' Khatri, R., Machart, P., and Bonn, S. (2024).
+#' DISSECT: deep semi-supervised consistency regularization for accurate
+#' cell type fraction and gene expression estimation.
+#' \emph{Genome Biology}, 25, 112.
+#' \doi{10.1186/s13059-024-03251-5}
+#'
+#' @seealso
+#' \code{\link{GSE107011}} for the Monaco1 bulk RNA-seq benchmark.
+#'
+#' @usage data(GSE107990)
+#'
+#' @keywords datasets
+#'
+#' @examples
+#' data(GSE107990)
+#'
+#' names(GSE107990)
+#' dim(GSE107990$bulk_expression_profiles)
+#' dim(GSE107990$ground_truth_proportions)
+#' dim(GSE107990$ground_truth_all_ct)
+#'
+#' # Gene symbols and cell-type labels
+#' head(rownames(GSE107990$bulk_expression_profiles))
+#' colnames(GSE107990$ground_truth_proportions)
+#' colnames(GSE107990$ground_truth_all_ct)
+#'
+#' # Check sample alignment
+#' identical(
+#'   colnames(GSE107990$bulk_expression_profiles),
+#'   rownames(GSE107990$ground_truth_proportions)
+#' )
+#' identical(
+#'   colnames(GSE107990$bulk_expression_profiles),
+#'   rownames(GSE107990$ground_truth_all_ct)
+#' )
+#'
+#' # The harmonized proportions sum to one
+#' head(rowSums(GSE107990$ground_truth_proportions))
+#'
+#' # Detailed populations include overlapping groups
+#' head(GSE107990$ground_truth_all_ct)
+"GSE107990"
+
 #' Load the COVID-19 PBMC immune reference (train, test, or healthy split)
 #'
 #' Loads one part of a donor-balanced 50/50 split of a COVID-19 peripheral-blood

@@ -8,10 +8,11 @@ QuasarDeconData bundles processed peripheral blood mononuclear cell
 Genomics single-cell PBMC reference, all formatted for use with QUASAR
 deconvolution workflows.
 
-The six bulk benchmark datasets and the healthy 10x PBMC reference use
-the same six cell-type labels: `Bcells`, `CD4Tcells`, `CD8Tcells`,
-`Monocytes`, `NK`, and `Unknown`. Column order and gene identifier
-formats vary, so align them before benchmarking.
+The bulk benchmark datasets listed below and the healthy 10x PBMC
+reference use the same six cell-type labels in their harmonized
+annotations: `Bcells`, `CD4Tcells`, `CD8Tcells`, `Monocytes`, `NK`, and
+`Unknown`. Column order and gene identifier formats vary, so align them
+before benchmarking.
 
 The COVID-19 references and pseudo-bulk datasets retain their own
 cell-type annotations.
@@ -38,14 +39,16 @@ pak::pak("SergejRuff/QuasarDeconData")
 | `load_cov_pbulk("train")` | COVID-19 PBMC pseudo-bulk | matched expression features | 10,000 samples | 10,000 × 11 | — |
 | `load_cov_pbulk("healthy")` | COVID-19 PBMC pseudo-bulk (healthy donors only) | matched expression features | healthy samples | matched proportions | — |
 | `GSE107011` | RNA-seq | 36,128 | 12 | 12 × 6 | `ensembl_ids` |
+| `GSE107990` (Monaco2) | Microarray (Illumina HT-12 V4) | 20,908 | 164 | 164 × 6; additional 164 × 11 | — |
 | `GSE107572` | RNA-seq | 19,423 | 9 | 9 × 6 | — |
 | `GSE120502` | RNA-seq | 39,376 | 249 | 249 × 6 | `gene_ids` |
 | `GSE65133` | Microarray (Illumina HT-12 V4) | 35,688 | 20 | 20 × 6 | `probe_ids` |
-| `SDY67` | RNA-seq | 23,113 | 231 | 231 × 6 | — |
 | `GSE193141` | RNA-seq (raw counts) | 39,376 | 156 | 156 × 6; additional 156 × 8 | — |
+| `SDY67` | RNA-seq | 23,113 | 231 | 231 × 6 | — |
+| `SDY67_scaden` | RNA-seq | 11,328 | 12 | 12 × 6 | — |
 
-Note: `GSE65133` is microarray intensity data, not counts — keep that in
-mind when feeding it to count-based deconvolution methods.
+Note: `GSE107990` and `GSE65133` contain microarray intensity
+measurements rather than sequencing counts.
 
 ## Single-cell reference
 
@@ -86,11 +89,13 @@ Each bulk dataset is a named list containing:
   × cell types.
 
 Some datasets also contain a separate gene or probe identifier vector.
-For `SDY67`, gene symbols are stored in the expression row names. For
-`GSE193141`, the expression row names contain NCBI gene identifiers.
+For `SDY67` and `GSE107990`, gene symbols are stored in the expression
+row names. For `GSE193141`, the expression row names contain NCBI gene
+identifiers.
 
-`GSE193141` additionally contains `ground_truth_all_ct`, which retains
-all eight original population measurements.
+Two datasets additionally contain `ground_truth_all_ct`: `GSE193141`
+retains eight original population measurements, and `GSE107990` retains
+eleven.
 
 ``` r
 data(GSE107011)
@@ -121,19 +126,24 @@ rowSums(GSE107011$ground_truth_proportions)
 Load the remaining datasets and compare their dimensions:
 
 ``` r
+data(GSE107990)
 data(GSE107572)
 data(GSE120502)
 data(GSE65133)
 data(SDY67)
 data(GSE193141)
+data(SDY67_scaden)
+data(GSE107011)
 
 bulk_datasets <- list(
-  GSE107011 = GSE107011,
-  GSE107572 = GSE107572,
-  GSE120502 = GSE120502,
-  GSE65133  = GSE65133,
-  SDY67     = SDY67,
-  GSE193141 = GSE193141
+  GSE107011    = GSE107011,
+  GSE107990    = GSE107990,
+  GSE107572    = GSE107572,
+  GSE120502    = GSE120502,
+  GSE65133     = GSE65133,
+  SDY67        = SDY67,
+  SDY67_scaden = SDY67_scaden,
+  GSE193141    = GSE193141
 )
 
 t(vapply(
@@ -147,16 +157,18 @@ t(vapply(
   },
   integer(3)
 ))
-#>           features samples cell_types
-#> GSE107011    36128      12          6
-#> GSE107572    19423       9          6
-#> GSE120502    39376     249          6
-#> GSE65133     21186      20          6
-#> SDY67        23113     231          6
-#> GSE193141    39376     156          6
+#>              features samples cell_types
+#> GSE107011       36128      12          6
+#> GSE107990       20908     164          6
+#> GSE107572       19423       9          6
+#> GSE120502       39376     249          6
+#> GSE65133        21186      20          6
+#> SDY67           23113     231          6
+#> SDY67_scaden    11328      12          6
+#> GSE193141       39376     156          6
 ```
 
-All six bulk benchmarks expose the same cell-type labels in
+All listed bulk benchmarks expose the same cell-type labels in
 `ground_truth_proportions`, although their column order varies:
 
 ``` r
@@ -165,6 +177,9 @@ lapply(
   function(x) colnames(x$ground_truth_proportions)
 )
 #> $GSE107011
+#> [1] "Bcells"    "CD4Tcells" "CD8Tcells" "Monocytes" "NK"        "Unknown"  
+#> 
+#> $GSE107990
 #> [1] "Bcells"    "CD4Tcells" "CD8Tcells" "Monocytes" "NK"        "Unknown"  
 #> 
 #> $GSE107572
@@ -178,6 +193,9 @@ lapply(
 #> 
 #> $SDY67
 #> [1] "CD8Tcells" "Monocytes" "CD4Tcells" "Bcells"    "NK"        "Unknown"  
+#> 
+#> $SDY67_scaden
+#> [1] "Monocytes" "Unknown"   "CD4Tcells" "Bcells"    "NK"        "CD8Tcells"
 #> 
 #> $GSE193141
 #> [1] "CD8Tcells" "Monocytes" "CD4Tcells" "Bcells"    "NK"        "Unknown"
@@ -204,6 +222,10 @@ The combined proportions are an approximate composition. `Unknown` can
 include unassigned cells and differences between the panels’ gates.
 Samples with missing or ambiguous panel matches, or overlapping main
 CD4/CD8-proxy gates, were excluded.
+
+`SDY67_scaden` are the same 12 bulk samples along the corresponding
+ground truth proportion vectors used in the scaden paper and other works
+such the DISSECT paper.
 
 ``` r
 dim(SDY67$bulk_expression_profiles)

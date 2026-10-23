@@ -16,7 +16,11 @@ GSE193141 <- readRDS(list.files(bulk_path,full.names = TRUE)[[4]])
 
 GSE65133 <- readRDS(list.files(bulk_path,full.names = TRUE)[[5]])
 
-SDY67 <- readRDS(list.files(bulk_path,full.names = TRUE)[[6]])
+GSE107990 <- readRDS(list.files(bulk_path,full.names = TRUE)[[6]])
+
+SDY67_scaden <- readRDS(list.files(bulk_path,full.names = TRUE)[[7]])
+
+SDY67 <- readRDS(list.files(bulk_path,full.names = TRUE)[[8]])
 
 
 GSE193141$bulk_expression_profiles = as.matrix(GSE193141$bulk_expression_profiles)
@@ -70,6 +74,18 @@ usethis::use_data(
 
 usethis::use_data(
   GSE65133,
+  overwrite = TRUE,
+  compress = "xz"
+)
+
+usethis::use_data(
+  GSE107990,
+  overwrite = TRUE,
+  compress = "xz"
+)
+
+usethis::use_data(
+  SDY67_scaden,
   overwrite = TRUE,
   compress = "xz"
 )
