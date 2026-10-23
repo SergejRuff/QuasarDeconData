@@ -505,6 +505,250 @@ load_pbmc_sc_ref <- function(which = c("ref", "pseudobulk")) {
 #' colnames(GSE65133$ground_truth_proportions)
 "GSE65133"
 
+#' Processed SDY67 PBMC bulk deconvolution dataset
+#'
+#' A processed peripheral blood mononuclear cell (PBMC) bulk RNA-seq
+#' deconvolution dataset derived from ImmPort study SDY67. Bulk expression
+#' profiles were matched to flow cytometry measurements using participant
+#' identifiers, collection visits, and collection-time metadata.
+#'
+#' The object contains bulk expression profiles and flow-derived reference
+#' cell type proportions for 231 matched samples. It was processed and
+#' formatted for use in QUASAR deconvolution workflows.
+#'
+#' @format A named list with two elements:
+#' \describe{
+#'   \item{bulk_expression_profiles}{
+#'     A numeric matrix or data frame with 23,113 genes and 231 bulk samples.
+#'     Gene symbols are stored as row names and RNA experiment-sample
+#'     accessions are stored as column names. Expression values are
+#'     preserved from the supplied source matrices.
+#'   }
+#'   \item{ground_truth_proportions}{
+#'     A numeric matrix or data frame with 231 samples and 6 columns:
+#'     \code{CD8Tcells}, \code{Monocytes}, \code{CD4Tcells},
+#'     \code{Bcells}, \code{NK}, and \code{Unknown}.
+#'     Values are fractions on a 0--1 scale. Row names match the column
+#'     names of \code{bulk_expression_profiles} in exactly the same order.
+#'   }
+#' }
+#'
+#' @details
+#' Proportions were extracted from saved FlowJo population counts in the
+#' innate and Treg panels. Each population count was divided by the
+#' \code{Live cells} count from the same panel and sample run.
+#'
+#' The six columns were constructed as follows:
+#'
+#' \describe{
+#'   \item{CD8Tcells}{
+#'     The study-labeled \code{CD8+ T cells} gate within the Treg panel's
+#'     \code{CD3+ gate}. This gate identifies CD4-low or CD4-negative
+#'     T cells and is a proxy for CD8 T cells. The panel does not contain
+#'     a CD8 antibody channel.
+#'   }
+#'   \item{Monocytes}{
+#'     The sum of classical, intermediate, and non-classical monocyte
+#'     fractions below the innate panel's \code{DR+ Non B cells} gate.
+#'     Alternative source labels, including \code{Conventional monocytes}
+#'     and \code{Non-conventional monocytes}, were treated as aliases of
+#'     the corresponding subsets, not as additional populations.
+#'   }
+#'   \item{CD4Tcells}{
+#'     The \code{CD4+ T cells} gate within the Treg panel's
+#'     \code{CD3+ gate}. Nested populations, including regulatory T cells,
+#'     were not added separately.
+#'   }
+#'   \item{Bcells}{
+#'     The innate panel's \code{B cells} gate. Measurements from the
+#'     separate B-cell panel were not combined with this estimate.
+#'   }
+#'   \item{NK}{
+#'     The innate panel's \code{NK cells} gate. The separately gated
+#'     \code{NK T cells} population is not included.
+#'   }
+#'   \item{Unknown}{
+#'     The arithmetic remainder:
+#'     \code{1 - (CD8Tcells + Monocytes + CD4Tcells + Bcells + NK)}.
+#'     This is not a directly measured population or an explicit sum
+#'     of the remaining named gates.
+#'   }
+#' }
+#'
+#' Samples with missing or ambiguous panel matches, or overlapping interiors
+#' of the main CD4 and CD8-proxy gates, were excluded. The retained samples
+#' have complete values for all six proportion columns.
+#'
+#' The proportions combine measurements from two flow panels. Consequently,
+#' \code{Unknown} can include unassigned cells and differences between
+#' panel-specific gates. The six columns sum to one by construction, but
+#' should be interpreted as an approximate composition rather than an
+#' exhaustive measurement of mutually exclusive populations.
+#'
+#' RNA and flow measurements were paired by participant and collection
+#' visit. Their biosample accessions differ, so matching does not establish
+#' that both assays used the identical aliquot.
+#'
+#' The data included here were processed and reformatted by Sergej Ruff for
+#' use with QUASAR deconvolution workflows. No endorsement by the original
+#' data providers is implied.
+#'
+#' @source
+#' ImmPort study SDY67, release DR58:
+#' \url{https://www.immport.org/shared/study/SDY67}
+#'
+#' Cell proportions were extracted from the supplied innate and Treg
+#' FlowJo workspaces and linked to RNA samples using the study metadata.
+#'
+#' @usage data(SDY67)
+#'
+#' @keywords datasets
+#'
+#' @examples
+#' data(SDY67)
+#'
+#' names(SDY67)
+#' dim(SDY67$bulk_expression_profiles)
+#' dim(SDY67$ground_truth_proportions)
+#' colnames(SDY67$ground_truth_proportions)
+#'
+#' identical(
+#'   colnames(SDY67$bulk_expression_profiles),
+#'   rownames(SDY67$ground_truth_proportions)
+#' )
+"SDY67"
+
+#' Processed GSE193141 PBMC bulk deconvolution dataset
+#'
+#' A processed peripheral blood mononuclear cell (PBMC) bulk RNA-seq
+#' deconvolution dataset derived from GEO accession GSE193141. The original
+#' study generated matched transcriptomic and flow cytometry measurements
+#' to investigate age-related changes in human PBMCs.
+#'
+#' The object contains bulk expression profiles, six-column reference
+#' proportions, and the eight original flow cytometry population
+#' measurements for 156 matched samples. It was processed and formatted
+#' for use in QUASAR deconvolution workflows.
+#'
+#' @format A named list with three elements:
+#' \describe{
+#'   \item{bulk_expression_profiles}{
+#'     A numeric matrix or data frame with 39,376 genes and 156 bulk
+#'     samples. Values are the supplied raw expression counts.
+#'     NCBI gene identifiers are stored as row names and RNA GSM
+#'     accessions are stored as column names.
+#'   }
+#'   \item{ground_truth_proportions}{
+#'     A numeric matrix or data frame with 156 samples and 6 columns:
+#'     \code{CD8Tcells}, \code{Monocytes}, \code{CD4Tcells},
+#'     \code{Bcells}, \code{NK}, and \code{Unknown}.
+#'     Values are fractions on a 0--1 scale.
+#'   }
+#'   \item{ground_truth_all_ct}{
+#'     A numeric matrix or data frame with 156 samples and 8 columns:
+#'     \code{Monocytes}, \code{Granulocytes}, \code{Lymphocytes},
+#'     \code{B_Cells}, \code{NK_Cells}, \code{T_Cells},
+#'     \code{CD4_T_Cells}, and \code{CD8_T_Cells}.
+#'     These are the original reported population percentages divided
+#'     by 100. Parent populations and their subsets overlap.
+#'   }
+#' }
+#'
+#' @details
+#' Samples were matched using the \code{GSM_rna} identifiers in the
+#' supplementary metadata. Three expression samples without cell
+#' proportion measurements were excluded, leaving 156 matched samples.
+#' The row names of both proportion matrices match the column names of
+#' \code{bulk_expression_profiles} in exactly the same order.
+#'
+#' The five selected cell types map directly to source columns:
+#'
+#' \describe{
+#'   \item{CD8Tcells}{
+#'     The source \code{CD8_T_Cells} percentage divided by 100.
+#'   }
+#'   \item{Monocytes}{
+#'     The source \code{Monocytes} percentage divided by 100.
+#'   }
+#'   \item{CD4Tcells}{
+#'     The source \code{CD4_T_Cells} percentage divided by 100.
+#'   }
+#'   \item{Bcells}{
+#'     The source \code{B_Cells} percentage divided by 100.
+#'   }
+#'   \item{NK}{
+#'     The source \code{NK_Cells} percentage divided by 100.
+#'   }
+#'   \item{Unknown}{
+#'     The arithmetic remainder:
+#'     \code{1 - (CD8Tcells + Monocytes + CD4Tcells + Bcells + NK)}.
+#'     This is a derived residual rather than a directly measured
+#'     population.
+#'   }
+#' }
+#'
+#' No source populations were combined to construct the five selected
+#' cell type columns. Granulocytes, total lymphocytes, and total T cells
+#' are retained in \code{ground_truth_all_ct} for additional context.
+#'
+#' The additional columns must not be summed to calculate \code{Unknown}.
+#' Total lymphocytes overlap B, NK, and T cells, while total T cells
+#' overlap CD4 and CD8 T cells. The residual can include granulocytes,
+#' other lymphocyte populations, unclassified fractions, and effects of
+#' gating. Its exact biological membership cannot be determined from
+#' these summary measurements alone.
+#'
+#' The six-column proportion matrix sums to one by construction.
+#' The eight-column matrix contains overlapping populations and should
+#' not be summed or normalized as a mutually exclusive composition.
+#' No hierarchical rescaling was applied to the source percentages.
+#'
+#' Expression values and gene identifiers were preserved from the supplied
+#' count matrix. No expression normalization or gene filtering was applied.
+#' Sample filtering was based on matching and proportion completeness.
+#' Fifteen retained samples are marked as not passing RNA quality control
+#' in the source metadata; that flag was not used for additional filtering.
+#'
+#' The data included here were processed and reformatted by Sergej Ruff for
+#' use with QUASAR deconvolution workflows. No endorsement by the original
+#' data providers is implied.
+#'
+#' @source
+#' Gene Expression Omnibus accession GSE193141:
+#' \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE193141}
+#'
+#' Flow cytometry measurements and sample metadata were obtained from
+#' Supplementary File 7 of:
+#'
+#' Morandini F, Rechsteiner C, Perez K, et al. (2024).
+#' ATAC-clock: An aging clock based on chromatin accessibility.
+#' GeroScience 46, 1789--1806.
+#' \doi{10.1007/s11357-023-00986-0}
+#'
+#' @usage data(GSE193141)
+#'
+#' @keywords datasets
+#'
+#' @examples
+#' data(GSE193141)
+#'
+#' names(GSE193141)
+#' dim(GSE193141$bulk_expression_profiles)
+#' dim(GSE193141$ground_truth_proportions)
+#' dim(GSE193141$ground_truth_all_ct)
+#' colnames(GSE193141$ground_truth_all_ct)
+#'
+#' identical(
+#'   colnames(GSE193141$bulk_expression_profiles),
+#'   rownames(GSE193141$ground_truth_proportions)
+#' )
+#'
+#' identical(
+#'   rownames(GSE193141$ground_truth_proportions),
+#'   rownames(GSE193141$ground_truth_all_ct)
+#' )
+"GSE193141"
+
 
 #' Load the COVID-19 PBMC immune reference (train, test, or healthy split)
 #'

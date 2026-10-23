@@ -12,7 +12,11 @@ GSE107572 <- readRDS(list.files(bulk_path,full.names = TRUE)[[2]])
 GSE120502 <- readRDS(list.files(bulk_path,full.names = TRUE)[[3]])
 
 
-GSE65133 <- readRDS(list.files(bulk_path,full.names = TRUE)[[4]])
+GSE193141 <- readRDS(list.files(bulk_path,full.names = TRUE)[[4]])
+
+GSE65133 <- readRDS(list.files(bulk_path,full.names = TRUE)[[5]])
+
+SDY67 <- readRDS(list.files(bulk_path,full.names = TRUE)[[6]])
 
 library(illuminaHumanv4.db)
 symbols <- mapIds(illuminaHumanv4.db,
@@ -54,7 +58,20 @@ usethis::use_data(
 )
 
 usethis::use_data(
+  GSE193141,
+  overwrite = TRUE,
+  compress = "xz"
+)
+
+
+usethis::use_data(
   GSE65133,
+  overwrite = TRUE,
+  compress = "xz"
+)
+
+usethis::use_data(
+  SDY67,
   overwrite = TRUE,
   compress = "xz"
 )
