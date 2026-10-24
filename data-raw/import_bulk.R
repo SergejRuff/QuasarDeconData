@@ -8,15 +8,16 @@ GSE107011 <- readRDS(list.files(bulk_path,full.names = TRUE)[[1]])
 
 GSE107572 <- readRDS(list.files(bulk_path,full.names = TRUE)[[2]])
 
+GSE107990 <- readRDS(list.files(bulk_path,full.names = TRUE)[[3]])
 
-GSE120502 <- readRDS(list.files(bulk_path,full.names = TRUE)[[3]])
+GSE120502 <- readRDS(list.files(bulk_path,full.names = TRUE)[[4]])
 
 
-GSE193141 <- readRDS(list.files(bulk_path,full.names = TRUE)[[4]])
+GSE193141 <- readRDS(list.files(bulk_path,full.names = TRUE)[[5]])
 
-GSE65133 <- readRDS(list.files(bulk_path,full.names = TRUE)[[5]])
+GSE65133 <- readRDS(list.files(bulk_path,full.names = TRUE)[[6]])
 
-GSE107990 <- readRDS(list.files(bulk_path,full.names = TRUE)[[6]])
+
 
 SDY67_scaden <- readRDS(list.files(bulk_path,full.names = TRUE)[[7]])
 
